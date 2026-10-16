@@ -3,22 +3,26 @@ import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * three.js FileLoader берёт размер файла из X-File-Size (Content-Length при gzip
- * не совпадает с распакованными байтами) — так прелоадер показывает реальный прогресс.
+ * Размеры моделей вшиваются в сборку: на статическом хостинге (GitHub Pages) нельзя
+ * отдать свой заголовок с размером файла, а Content-Length при gzip не совпадает
+ * с распакованными байтами. По этим числам прелоадер показывает реальный прогресс.
  */
-const MODELS = ["car.glb", "car-mobile.glb"];
-const modelHeaders = MODELS.filter((f) => existsSync(join(process.cwd(), "public/models", f))).map((f) => ({
-  source: `/models/${f}`,
-  headers: [
-    { key: "X-File-Size", value: String(statSync(join(process.cwd(), "public/models", f)).size) },
-    { key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" },
-  ],
-}));
+const size = (file: string) => {
+  const path = join(process.cwd(), "public/models", file);
+  return existsSync(path) ? String(statSync(path).size) : "";
+};
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  async headers() {
-    return modelHeaders;
+  // Статический экспорт в папку out — для GitHub Pages
+  output: "export",
+  // Оптимизатор картинок требует сервер — отдаём файлы как есть (они уже в webp)
+  images: { unoptimized: true },
+  // /about → /about/index.html: так GitHub Pages находит страницы без серверной маршрутизации
+  trailingSlash: true,
+  env: {
+    NEXT_PUBLIC_MODEL_SIZE_DESKTOP: size("car.glb"),
+    NEXT_PUBLIC_MODEL_SIZE_MOBILE: size("car-mobile.glb"),
   },
 };
 

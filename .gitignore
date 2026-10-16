@@ -8,8 +8,5 @@ next-env.d.ts
 # окружение
 .env*
 
-# Vercel CLI
-.vercel
-
 # исходники 3D-модели до оптимизации (52 МБ) — сайт использует public/models/*.glb
 models-src

@@ -37,6 +37,12 @@ type Instance = {
   door?: { hinge: THREE.Group; hingeBase: THREE.Vector3; axis: THREE.Vector3; shift: THREE.Vector3 };
 };
 
+/** Размеры моделей в байтах (next.config.ts → env) */
+const MODEL_SIZE = {
+  desktop: Number(process.env.NEXT_PUBLIC_MODEL_SIZE_DESKTOP) || 0,
+  mobile: Number(process.env.NEXT_PUBLIC_MODEL_SIZE_MOBILE) || 0,
+};
+
 const sign = (v: number, dead = 0) => (Math.abs(v) <= dead ? 0 : Math.sign(v));
 
 /** Детали с несколькими экземплярами разлетаются «от центра» по своей стороне */
@@ -276,8 +282,10 @@ export function GLBCar({ url, lite = false }: { url: string; lite?: boolean }) {
       (loader as GLTFLoader).setMeshoptDecoder(MeshoptDecoder);
     },
     (e) => {
-      // Реальный прогресс загрузки по байтам (размер файла сервер отдаёт в X-File-Size)
-      if (e.total) setModelProgress(Math.min(1, e.loaded / e.total));
+      // Реальный прогресс по байтам: размер файла вшит в сборку (next.config → env),
+      // запасной вариант — Content-Length из ответа
+      const total = (url === MODEL.mobileUrl ? MODEL_SIZE.mobile : MODEL_SIZE.desktop) || e.total;
+      if (total) setModelProgress(Math.min(1, e.loaded / total));
     },
   );
   const mats = useMemo(() => createJeskoMaterials(lite), [lite]);
