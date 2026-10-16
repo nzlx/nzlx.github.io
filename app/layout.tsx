@@ -43,6 +43,9 @@ export const metadata: Metadata = {
     images: [og],
   },
   robots: { index: true, follow: true },
+  verification: {
+    google: "gZRhFk8VIdYWE6Lu-NKo6LaaEFTG-krgQ7Ukx1cKI6M",
+  },
 };
 
 export const viewport: Viewport = {
